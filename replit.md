@@ -17,27 +17,49 @@ Preferred communication style: Simple, everyday language.
 - **State Management**: TanStack Query (React Query) for server state management
 - **Routing**: Wouter for lightweight client-side routing
 - **Form Handling**: React Hook Form with Zod validation
+- **Rich Text Editor**: TipTap with extensions for tables, images, links, and placeholders
+- **Carousel**: Embla Carousel for client logos and image galleries
 
 ### Backend Architecture
 - **Framework**: Express.js with TypeScript
 - **Database**: PostgreSQL with Drizzle ORM
 - **Database Provider**: Neon Database (serverless PostgreSQL)
-- **Authentication**: Simple credential-based auth with localStorage
-- **API**: RESTful endpoints for blog management and admin operations
+- **Authentication**: Employee-only login with bcrypt password hashing
+- **API**: RESTful endpoints for all content management operations
+- **Security**: Role-based access control (admin, editor, viewer)
+- **Email**: NodeMailer with Gmail SMTP integration planned
 
 ### Key Components
 
 #### Database Schema
-- `users` table: Simple user management (id, username, password)
-- `blog_posts` table: Blog content with fields for title, content, excerpt, author, category, image URL, publish status, and timestamps
+- `users` table: Employee management with roles (admin, editor, viewer), full names, email, password hashing
+- `categories` table: Blog post categories with slugs and descriptions
+- `blog_posts` table: Blog content with foreign key relationships to users and categories
+- `services` table: Company services with features, descriptions, and slugs
+- `projects` table: Project portfolio with client information, service relationships, and detailed project data
+- `client_logos` table: Client logo carousel with sorting and active status
+- `contact_submissions` table: Contact form submissions with read status tracking
 
 #### API Endpoints
 - **Public Routes**:
-  - `GET /api/blog/posts` - Fetch published blog posts
+  - `GET /api/blog/posts` - Fetch published blog posts with sorting
   - `GET /api/blog/posts/:id` - Fetch specific blog post
+  - `GET /api/categories` - Fetch all blog categories
+  - `GET /api/services` - Fetch all services
+  - `GET /api/services/:slug` - Fetch service by slug
+  - `GET /api/projects` - Fetch all projects with sorting
+  - `GET /api/projects/:id` - Fetch specific project
+  - `GET /api/client-logos` - Fetch client logos for carousel
+  - `POST /api/contact` - Submit contact form
 - **Admin Routes**:
-  - `POST /api/admin/login` - Admin authentication
-  - Admin blog management (CRUD operations)
+  - `POST /api/admin/login` - Employee authentication
+  - User management (CRUD operations for employee accounts)
+  - Blog post management with category relationships
+  - Category management (CRUD operations)
+  - Service management (CRUD operations)
+  - Project management (CRUD operations)
+  - Client logo management (CRUD operations)
+  - Contact submission management (view, mark as read)
 
 #### Frontend Pages
 - **Public Pages**:
