@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { getStoredAuth, clearAuth } from "@/lib/auth";
 import { queryClient, apiRequest } from "@/lib/queryClient";
@@ -19,7 +20,11 @@ import {
   FileText,
   Check,
   Clock,
-  BarChart3
+  BarChart3,
+  Filter,
+  ArrowUpDown,
+  Tag,
+  Settings
 } from "lucide-react";
 import type { BlogPost } from "@shared/schema";
 
@@ -28,6 +33,10 @@ export default function Admin() {
   const { toast } = useToast();
   const [showEditor, setShowEditor] = useState(false);
   const [editingPost, setEditingPost] = useState<BlogPost | null>(null);
+  const [showCategoryManager, setShowCategoryManager] = useState(false);
+  const [sortBy, setSortBy] = useState('createdAt');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [filterStatus, setFilterStatus] = useState<'all' | 'published' | 'draft'>('all');
 
   const user = getStoredAuth();
 
@@ -38,9 +47,27 @@ export default function Admin() {
   }, [user, setLocation]);
 
   const { data: posts, isLoading } = useQuery<BlogPost[]>({
-    queryKey: ["/api/admin/blog/posts"],
+    queryKey: ["/api/admin/blog/posts", sortBy, sortOrder],
+    queryFn: async () => {
+      const response = await fetch(`/api/admin/blog/posts?sortBy=${sortBy}&sortOrder=${sortOrder}`);
+      return response.json();
+    },
     enabled: !!user,
   });
+
+  const { data: categories } = useQuery({
+    queryKey: ["/api/categories"],
+    enabled: !!user,
+  });
+
+  const filteredPosts = posts?.filter(post => {
+    if (filterStatus === 'all') return true;
+    return filterStatus === 'published' ? post.published : !post.published;
+  }) || [];
+
+  const publishedCount = posts?.filter(post => post.published).length || 0;
+  const draftCount = posts?.filter(post => !post.published).length || 0;
+  const totalCount = posts?.length || 0;
 
   const deleteMutation = useMutation({
     mutationFn: (id: number) => apiRequest("DELETE", `/api/admin/blog/posts/${id}`),
@@ -151,13 +178,16 @@ export default function Admin() {
 
       <div className="container mx-auto px-4 lg:px-8 py-8">
         {/* Stats */}
-        <div className="grid md:grid-cols-3 gap-6 mb-8">
-          <Card>
+        <div className="grid md:grid-cols-4 gap-6 mb-8">
+          <Card 
+            className="cursor-pointer hover:shadow-md transition-shadow"
+            onClick={() => setFilterStatus('all')}
+          >
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-600">Total Posts</p>
-                  <p className="text-2xl font-bold text-gray-900">{posts?.length || 0}</p>
+                  <p className="text-2xl font-bold text-gray-900">{totalCount}</p>
                 </div>
                 <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
                   <FileText className="w-6 h-6 text-blue-600" />
@@ -166,12 +196,15 @@ export default function Admin() {
             </CardContent>
           </Card>
           
-          <Card>
+          <Card 
+            className="cursor-pointer hover:shadow-md transition-shadow"
+            onClick={() => setFilterStatus('published')}
+          >
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-600">Published</p>
-                  <p className="text-2xl font-bold text-gray-900">{publishedPosts.length}</p>
+                  <p className="text-2xl font-bold text-gray-900">{publishedCount}</p>
                 </div>
                 <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
                   <Check className="w-6 h-6 text-green-600" />
@@ -180,12 +213,15 @@ export default function Admin() {
             </CardContent>
           </Card>
           
-          <Card>
+          <Card 
+            className="cursor-pointer hover:shadow-md transition-shadow"
+            onClick={() => setFilterStatus('draft')}
+          >
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-600">Drafts</p>
-                  <p className="text-2xl font-bold text-gray-900">{draftPosts.length}</p>
+                  <p className="text-2xl font-bold text-gray-900">{draftCount}</p>
                 </div>
                 <div className="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
                   <Clock className="w-6 h-6 text-yellow-600" />
@@ -193,22 +229,104 @@ export default function Admin() {
               </div>
             </CardContent>
           </Card>
+
+          <Card 
+            className="cursor-pointer hover:shadow-md transition-shadow"
+            onClick={() => setShowCategoryManager(true)}
+          >
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-600">Categories</p>
+                  <p className="text-2xl font-bold text-gray-900">{categories?.length || 0}</p>
+                </div>
+                <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                  <Tag className="w-6 h-6 text-purple-600" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
+
+        {/* Filters and Sorting */}
+        <Card className="mb-6">
+          <CardContent className="p-6">
+            <div className="flex flex-wrap gap-4 items-center justify-between">
+              <div className="flex flex-wrap gap-4">
+                <div className="flex items-center gap-2">
+                  <Filter className="h-4 w-4 text-gray-500" />
+                  <Select value={filterStatus} onValueChange={(value: any) => setFilterStatus(value)}>
+                    <SelectTrigger className="w-32">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Posts</SelectItem>
+                      <SelectItem value="published">Published</SelectItem>
+                      <SelectItem value="draft">Drafts</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="flex items-center gap-2">
+                  <ArrowUpDown className="h-4 w-4 text-gray-500" />
+                  <Select value={sortBy} onValueChange={setSortBy}>
+                    <SelectTrigger className="w-40">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="createdAt">Created Date</SelectItem>
+                      <SelectItem value="updatedAt">Updated Date</SelectItem>
+                      <SelectItem value="title">Title</SelectItem>
+                      <SelectItem value="published">Status</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="flex items-center gap-2">
+                  <Select value={sortOrder} onValueChange={(value: any) => setSortOrder(value)}>
+                    <SelectTrigger className="w-32">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="desc">Newest First</SelectItem>
+                      <SelectItem value="asc">Oldest First</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowCategoryManager(true)}
+                >
+                  <Settings className="h-4 w-4 mr-2" />
+                  Manage Categories
+                </Button>
+                <Button
+                  onClick={handleNewPost}
+                  className="bg-green-600 hover:bg-green-700"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  New Post
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Posts Table */}
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
               <CardTitle className="text-xl font-bold text-gray-900">
-                Blog Posts
+                Blog Posts ({filteredPosts.length})
               </CardTitle>
-              <Button
-                onClick={handleNewPost}
-                className="bg-green-primary hover:bg-green-600 text-white"
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                New Post
-              </Button>
+              <div className="text-sm text-gray-500">
+                {filterStatus === 'all' ? 'All Posts' : 
+                 filterStatus === 'published' ? 'Published Posts' : 'Draft Posts'}
+              </div>
             </div>
           </CardHeader>
           <CardContent>
@@ -216,9 +334,13 @@ export default function Admin() {
               <div className="text-center py-8">
                 <p className="text-gray-600">Loading posts...</p>
               </div>
-            ) : !posts || posts.length === 0 ? (
+            ) : !filteredPosts || filteredPosts.length === 0 ? (
               <div className="text-center py-8">
-                <p className="text-gray-600">No posts yet. Create your first post!</p>
+                <p className="text-gray-600">
+                  {filterStatus === 'all' ? 'No posts yet. Create your first post!' :
+                   filterStatus === 'published' ? 'No published posts yet.' :
+                   'No draft posts yet.'}
+                </p>
               </div>
             ) : (
               <div className="overflow-x-auto">
@@ -243,7 +365,7 @@ export default function Admin() {
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {posts.map((post) => (
+                    {filteredPosts.map((post) => (
                       <tr key={post.id}>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="text-sm font-medium text-gray-900 max-w-xs truncate">
@@ -266,6 +388,13 @@ export default function Admin() {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                           <div className="flex space-x-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => window.open(`/blog/${post.id}`, '_blank')}
+                            >
+                              <Eye className="w-4 h-4" />
+                            </Button>
                             <Button
                               variant="outline"
                               size="sm"

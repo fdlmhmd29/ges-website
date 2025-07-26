@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,9 +12,11 @@ import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import { getStoredAuth } from "@/lib/auth";
+import RichTextEditor from "./rich-text-editor";
 import { insertBlogPostSchema } from "@shared/schema";
 import { X, Save, Eye } from "lucide-react";
-import type { BlogPost } from "@shared/schema";
+import type { BlogPost, Category } from "@shared/schema";
 
 interface BlogEditorProps {
   post?: BlogPost | null;
@@ -26,26 +28,20 @@ type BlogPostForm = {
   title: string;
   content: string;
   excerpt: string;
-  author: string;
-  category: string;
+  authorId: number;
+  categoryId: number;
   imageUrl: string;
   published: boolean;
 };
 
-const categories = [
-  "Green Building",
-  "Waste Management", 
-  "Monitoring",
-  "Sustainability",
-  "Environmental Impact",
-  "Air Quality",
-  "Water Management",
-  "Ecosystem Restoration"
-];
-
 export default function BlogEditor({ post, onClose, onSaved }: BlogEditorProps) {
   const { toast } = useToast();
   const [isPreview, setIsPreview] = useState(false);
+  const user = getStoredAuth();
+
+  const { data: categories } = useQuery<Category[]>({
+    queryKey: ['/api/categories'],
+  });
 
   const {
     register,
@@ -59,8 +55,8 @@ export default function BlogEditor({ post, onClose, onSaved }: BlogEditorProps) 
       title: post?.title || "",
       content: post?.content || "",
       excerpt: post?.excerpt || "",
-      author: post?.author || "",
-      category: post?.category || "",
+      authorId: post?.authorId || user?.id || 1,
+      categoryId: post?.categoryId || categories?.[0]?.id || 1,
       imageUrl: post?.imageUrl || "",
       published: post?.published || false,
     },
@@ -240,34 +236,32 @@ export default function BlogEditor({ post, onClose, onSaved }: BlogEditorProps) 
                       <Label htmlFor="author">Author</Label>
                       <Input
                         id="author"
-                        placeholder="Author name"
-                        {...register("author")}
-                        className={errors.author ? "border-red-500" : ""}
+                        value={user?.firstName && user?.lastName ? `${user.firstName} ${user.lastName}` : user?.username || 'Unknown'}
+                        disabled
+                        className="bg-gray-50"
                       />
-                      {errors.author && (
-                        <p className="text-sm text-red-500 mt-1">{errors.author.message}</p>
-                      )}
+                      <p className="text-sm text-gray-500 mt-1">Author is set based on logged in user</p>
                     </div>
 
                     <div>
                       <Label htmlFor="category">Category</Label>
                       <Select 
-                        value={formData.category} 
-                        onValueChange={(value) => setValue("category", value)}
+                        value={formData.categoryId?.toString()} 
+                        onValueChange={(value) => setValue("categoryId", parseInt(value))}
                       >
-                        <SelectTrigger className={errors.category ? "border-red-500" : ""}>
+                        <SelectTrigger className={errors.categoryId ? "border-red-500" : ""}>
                           <SelectValue placeholder="Select category" />
                         </SelectTrigger>
                         <SelectContent>
-                          {categories.map((category) => (
-                            <SelectItem key={category} value={category}>
-                              {category}
+                          {categories?.map((category) => (
+                            <SelectItem key={category.id} value={category.id.toString()}>
+                              {category.name}
                             </SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
-                      {errors.category && (
-                        <p className="text-sm text-red-500 mt-1">{errors.category.message}</p>
+                      {errors.categoryId && (
+                        <p className="text-sm text-red-500 mt-1">{errors.categoryId.message}</p>
                       )}
                     </div>
                   </div>
@@ -299,12 +293,10 @@ export default function BlogEditor({ post, onClose, onSaved }: BlogEditorProps) 
                 <CardContent>
                   <div>
                     <Label htmlFor="content">Article Content</Label>
-                    <Textarea
-                      id="content"
+                    <RichTextEditor
+                      content={formData.content}
+                      onChange={(content) => setValue("content", content)}
                       placeholder="Write your article content here..."
-                      rows={20}
-                      {...register("content")}
-                      className={errors.content ? "border-red-500" : ""}
                     />
                     {errors.content && (
                       <p className="text-sm text-red-500 mt-1">{errors.content.message}</p>
