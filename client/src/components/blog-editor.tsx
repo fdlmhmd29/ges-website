@@ -7,7 +7,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
@@ -17,6 +23,7 @@ import RichTextEditor from "./rich-text-editor";
 import { insertBlogPostSchema } from "@shared/schema";
 import { X, Save, Eye } from "lucide-react";
 import type { BlogPost, Category } from "@shared/schema";
+import DOMPurify from "dompurify";
 
 interface BlogEditorProps {
   post?: BlogPost | null;
@@ -34,13 +41,17 @@ type BlogPostForm = {
   published: boolean;
 };
 
-export default function BlogEditor({ post, onClose, onSaved }: BlogEditorProps) {
+export default function BlogEditor({
+  post,
+  onClose,
+  onSaved,
+}: BlogEditorProps) {
   const { toast } = useToast();
   const [isPreview, setIsPreview] = useState(false);
   const user = getStoredAuth();
 
   const { data: categories } = useQuery<Category[]>({
-    queryKey: ['/api/categories'],
+    queryKey: ["/api/categories"],
   });
 
   const {
@@ -65,7 +76,8 @@ export default function BlogEditor({ post, onClose, onSaved }: BlogEditorProps) 
   const formData = watch();
 
   const createMutation = useMutation({
-    mutationFn: (data: BlogPostForm) => apiRequest("POST", "/api/admin/blog/posts", data),
+    mutationFn: (data: BlogPostForm) =>
+      apiRequest("POST", "/api/admin/blog/posts", data),
     onSuccess: () => {
       toast({
         title: "Berhasil!",
@@ -83,7 +95,8 @@ export default function BlogEditor({ post, onClose, onSaved }: BlogEditorProps) 
   });
 
   const updateMutation = useMutation({
-    mutationFn: (data: BlogPostForm) => apiRequest("PUT", `/api/admin/blog/posts/${post?.id}`, data),
+    mutationFn: (data: BlogPostForm) =>
+      apiRequest("PUT", `/api/admin/blog/posts/${post?.id}`, data),
     onSuccess: () => {
       toast({
         title: "Berhasil!",
@@ -131,7 +144,7 @@ export default function BlogEditor({ post, onClose, onSaved }: BlogEditorProps) 
                 </Button>
               </div>
             </div>
-            
+
             <div className="flex items-center space-x-4">
               <Button
                 onClick={handleSubmit(onSubmit)}
@@ -157,7 +170,7 @@ export default function BlogEditor({ post, onClose, onSaved }: BlogEditorProps) 
               <CardContent className="p-8">
                 <div className="mb-6">
                   <span className="bg-green-light text-green-primary px-3 py-1 rounded-full text-sm font-medium">
-                    {formData.category}
+                    {formData.categoryId}
                   </span>
                 </div>
                 <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
@@ -165,33 +178,48 @@ export default function BlogEditor({ post, onClose, onSaved }: BlogEditorProps) 
                 </h1>
                 <div className="flex items-center space-x-3 mb-6">
                   <div className="w-12 h-12 bg-green-primary rounded-full flex items-center justify-center">
-                    <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+                    <svg
+                      className="w-6 h-6 text-white"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"
+                        clipRule="evenodd"
+                      />
                     </svg>
                   </div>
                   <div>
-                    <p className="font-medium text-gray-900">{formData.author}</p>
-                    <p className="text-sm text-gray-600">Environmental Consultant</p>
+                    <p className="font-medium text-gray-900">
+                      {formData.authorId}
+                    </p>
+                    <p className="text-sm text-gray-600">
+                      Environmental Consultant
+                    </p>
                   </div>
                 </div>
-                
+
                 {formData.imageUrl && (
                   <div className="mb-8">
-                    <img 
-                      src={formData.imageUrl} 
+                    <img
+                      src={formData.imageUrl}
                       alt={formData.title}
                       className="w-full h-96 object-cover rounded-lg shadow-lg"
                     />
                   </div>
                 )}
-                
+
                 <div className="prose prose-lg max-w-none">
                   <p className="text-xl text-gray-700 mb-6 font-medium">
                     {formData.excerpt}
                   </p>
-                  <div className="text-gray-800 leading-relaxed whitespace-pre-wrap">
-                    {formData.content}
-                  </div>
+                  <div
+                    className="text-gray-800 leading-relaxed whitespace-pre-wrap"
+                    dangerouslySetInnerHTML={{
+                      __html: DOMPurify.sanitize(formData.content),
+                    }}
+                  />
                 </div>
               </CardContent>
             </Card>
@@ -213,7 +241,9 @@ export default function BlogEditor({ post, onClose, onSaved }: BlogEditorProps) 
                       className={errors.title ? "border-red-500" : ""}
                     />
                     {errors.title && (
-                      <p className="text-sm text-red-500 mt-1">{errors.title.message}</p>
+                      <p className="text-sm text-red-500 mt-1">
+                        {errors.title.message}
+                      </p>
                     )}
                   </div>
 
@@ -227,7 +257,9 @@ export default function BlogEditor({ post, onClose, onSaved }: BlogEditorProps) 
                       className={errors.excerpt ? "border-red-500" : ""}
                     />
                     {errors.excerpt && (
-                      <p className="text-sm text-red-500 mt-1">{errors.excerpt.message}</p>
+                      <p className="text-sm text-red-500 mt-1">
+                        {errors.excerpt.message}
+                      </p>
                     )}
                   </div>
 
@@ -236,32 +268,47 @@ export default function BlogEditor({ post, onClose, onSaved }: BlogEditorProps) 
                       <Label htmlFor="author">Author</Label>
                       <Input
                         id="author"
-                        value={user?.firstName && user?.lastName ? `${user.firstName} ${user.lastName}` : user?.username || 'Unknown'}
+                        value={
+                          user?.firstName && user?.lastName
+                            ? `${user.firstName} ${user.lastName}`
+                            : user?.username || "Unknown"
+                        }
                         disabled
                         className="bg-gray-50"
                       />
-                      <p className="text-sm text-gray-500 mt-1">Author is set based on logged in user</p>
+                      <p className="text-sm text-gray-500 mt-1">
+                        Author is set based on logged in user
+                      </p>
                     </div>
 
                     <div>
                       <Label htmlFor="category">Category</Label>
-                      <Select 
-                        value={formData.categoryId?.toString()} 
-                        onValueChange={(value) => setValue("categoryId", parseInt(value))}
+                      <Select
+                        value={formData.categoryId?.toString()}
+                        onValueChange={(value) =>
+                          setValue("categoryId", parseInt(value))
+                        }
                       >
-                        <SelectTrigger className={errors.categoryId ? "border-red-500" : ""}>
+                        <SelectTrigger
+                          className={errors.categoryId ? "border-red-500" : ""}
+                        >
                           <SelectValue placeholder="Select category" />
                         </SelectTrigger>
                         <SelectContent>
                           {categories?.map((category) => (
-                            <SelectItem key={category.id} value={category.id.toString()}>
+                            <SelectItem
+                              key={category.id}
+                              value={category.id.toString()}
+                            >
                               {category.name}
                             </SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
                       {errors.categoryId && (
-                        <p className="text-sm text-red-500 mt-1">{errors.categoryId.message}</p>
+                        <p className="text-sm text-red-500 mt-1">
+                          {errors.categoryId.message}
+                        </p>
                       )}
                     </div>
                   </div>
@@ -279,7 +326,9 @@ export default function BlogEditor({ post, onClose, onSaved }: BlogEditorProps) 
                     <Switch
                       id="published"
                       checked={formData.published}
-                      onCheckedChange={(checked) => setValue("published", checked)}
+                      onCheckedChange={(checked) =>
+                        setValue("published", checked)
+                      }
                     />
                     <Label htmlFor="published">Publish immediately</Label>
                   </div>
@@ -299,7 +348,9 @@ export default function BlogEditor({ post, onClose, onSaved }: BlogEditorProps) 
                       placeholder="Write your article content here..."
                     />
                     {errors.content && (
-                      <p className="text-sm text-red-500 mt-1">{errors.content.message}</p>
+                      <p className="text-sm text-red-500 mt-1">
+                        {errors.content.message}
+                      </p>
                     )}
                   </div>
                 </CardContent>
