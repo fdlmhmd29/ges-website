@@ -1,4 +1,13 @@
-import { pgTable, text, serial, integer, boolean, timestamp, varchar, index } from "drizzle-orm/pg-core";
+import {
+  pgTable,
+  text,
+  serial,
+  integer,
+  boolean,
+  timestamp,
+  varchar,
+  index,
+} from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import { relations } from "drizzle-orm";
@@ -14,7 +23,10 @@ export const users = pgTable("users", {
   password: text("password").notNull(),
   firstName: text("first_name"),
   lastName: text("last_name"),
-  role: text("role").$type<typeof userRoles[number]>().notNull().default("viewer"),
+  role: text("role")
+    .$type<(typeof userRoles)[number]>()
+    .notNull()
+    .default("viewer"),
   isActive: boolean("is_active").default(true),
   invitedBy: integer("invited_by").references(() => users.id),
   createdAt: timestamp("created_at").defaultNow(),
@@ -37,8 +49,12 @@ export const blogPosts = pgTable("blog_posts", {
   title: text("title").notNull(),
   content: text("content").notNull(),
   excerpt: text("excerpt").notNull(),
-  authorId: integer("author_id").references(() => users.id).notNull(),
-  categoryId: integer("category_id").references(() => categories.id).notNull(),
+  authorId: integer("author_id")
+    .references(() => users.id)
+    .notNull(),
+  categoryId: integer("category_id")
+    .references(() => categories.id)
+    .notNull(),
   imageUrl: text("image_url"),
   published: boolean("published").default(false),
   createdAt: timestamp("created_at").defaultNow(),
@@ -67,7 +83,9 @@ export const projects = pgTable("projects", {
   description: text("description").notNull(),
   shortDescription: text("short_description").notNull(),
   client: text("client").notNull(),
-  serviceId: integer("service_id").references(() => services.id).notNull(),
+  serviceId: integer("service_id")
+    .references(() => services.id)
+    .notNull(),
   imageUrl: text("image_url"),
   completedAt: timestamp("completed_at"),
   duration: text("duration"),
@@ -190,7 +208,9 @@ export const insertClientLogoSchema = createInsertSchema(clientLogos).omit({
   updatedAt: true,
 });
 
-export const insertContactSubmissionSchema = createInsertSchema(contactSubmissions).omit({
+export const insertContactSubmissionSchema = createInsertSchema(
+  contactSubmissions
+).omit({
   id: true,
   createdAt: true,
 });
@@ -199,7 +219,7 @@ export const insertContactSubmissionSchema = createInsertSchema(contactSubmissio
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type InviteUser = z.infer<typeof inviteUserSchema>;
 export type User = typeof users.$inferSelect;
-export type UserRole = typeof userRoles[number];
+export type UserRole = (typeof userRoles)[number];
 
 export type InsertCategory = z.infer<typeof insertCategorySchema>;
 export type Category = typeof categories.$inferSelect;
@@ -217,5 +237,7 @@ export type Project = typeof projects.$inferSelect;
 export type InsertClientLogo = z.infer<typeof insertClientLogoSchema>;
 export type ClientLogo = typeof clientLogos.$inferSelect;
 
-export type InsertContactSubmission = z.infer<typeof insertContactSubmissionSchema>;
+export type InsertContactSubmission = z.infer<
+  typeof insertContactSubmissionSchema
+>;
 export type ContactSubmission = typeof contactSubmissions.$inferSelect;

@@ -1,5 +1,12 @@
 import { db } from "./db";
-import { users, categories, services, clientLogos, projects, blogPosts } from "@shared/schema";
+import {
+  users,
+  categories,
+  services,
+  clientLogos,
+  projects,
+  blogPosts,
+} from "@shared/schema";
 import bcrypt from "bcryptjs";
 
 async function seedDatabase() {
@@ -16,140 +23,199 @@ async function seedDatabase() {
 
     // Create admin user
     const hashedPassword = await bcrypt.hash("greenfield2023", 10);
-    const [adminUser] = await db.insert(users).values({
-      username: "admin",
-      email: "admin@greenfieldenv.co.id",
-      password: hashedPassword,
-      firstName: "Admin",
-      lastName: "User",
-      role: "admin",
-      isActive: true,
-    }).returning();
+    const [adminUser] = await db
+      .insert(users)
+      .values({
+        username: "admin",
+        email: "admin@greenfieldenv.co.id",
+        password: hashedPassword,
+        firstName: "Admin",
+        lastName: "User",
+        role: "admin",
+        isActive: true,
+      })
+      .returning();
 
     // Create sample users
-    const [editorUser] = await db.insert(users).values({
-      username: "sarah.putri",
-      email: "sarah.putri@greenfieldenv.co.id",
-      password: await bcrypt.hash("password123", 10),
-      firstName: "Sarah",
-      lastName: "Putri",
-      role: "editor",
-      isActive: true,
-      invitedBy: adminUser.id,
-    }).returning();
+    const [editorUser] = await db
+      .insert(users)
+      .values({
+        username: "sarah.putri",
+        email: "sarah.putri@greenfieldenv.co.id",
+        password: await bcrypt.hash("password123", 10),
+        firstName: "Sarah",
+        lastName: "Putri",
+        role: "editor",
+        isActive: true,
+        invitedBy: adminUser.id,
+      })
+      .returning();
 
-    const [writerUser] = await db.insert(users).values({
-      username: "bambang.sutrisno",
-      email: "bambang.sutrisno@greenfieldenv.co.id",
-      password: await bcrypt.hash("password123", 10),
-      firstName: "Bambang",
-      lastName: "Sutrisno",
-      role: "editor",
-      isActive: true,
-      invitedBy: adminUser.id,
-    }).returning();
+    const [writerUser] = await db
+      .insert(users)
+      .values({
+        username: "bambang.sutrisno",
+        email: "bambang.sutrisno@greenfieldenv.co.id",
+        password: await bcrypt.hash("password123", 10),
+        firstName: "Bambang",
+        lastName: "Sutrisno",
+        role: "editor",
+        isActive: true,
+        invitedBy: adminUser.id,
+      })
+      .returning();
 
     // Create categories
-    const [greenBuildingCategory] = await db.insert(categories).values({
-      name: "Green Building",
-      description: "Sustainable building practices and green architecture",
-      slug: "green-building",
-    }).returning();
+    const [greenBuildingCategory] = await db
+      .insert(categories)
+      .values({
+        name: "Green Building",
+        description: "Sustainable building practices and green architecture",
+        slug: "green-building",
+      })
+      .returning();
 
-    const [wasteManagementCategory] = await db.insert(categories).values({
-      name: "Waste Management",
-      description: "Waste reduction, recycling, and disposal solutions",
-      slug: "waste-management",
-    }).returning();
+    const [wasteManagementCategory] = await db
+      .insert(categories)
+      .values({
+        name: "Waste Management",
+        description: "Waste reduction, recycling, and disposal solutions",
+        slug: "waste-management",
+      })
+      .returning();
 
-    const [monitoringCategory] = await db.insert(categories).values({
-      name: "Environmental Monitoring",
-      description: "Environmental monitoring and assessment",
-      slug: "environmental-monitoring",
-    }).returning();
+    const [monitoringCategory] = await db
+      .insert(categories)
+      .values({
+        name: "Environmental Monitoring",
+        description: "Environmental monitoring and assessment",
+        slug: "environmental-monitoring",
+      })
+      .returning();
 
-    const [sustainabilityCategory] = await db.insert(categories).values({
-      name: "Sustainability",
-      description: "Sustainable business practices and ESG",
-      slug: "sustainability",
-    }).returning();
+    const [sustainabilityCategory] = await db
+      .insert(categories)
+      .values({
+        name: "Sustainability",
+        description: "Sustainable business practices and ESG",
+        slug: "sustainability",
+      })
+      .returning();
 
     // Create services
-    const [eiaService] = await db.insert(services).values({
-      name: "Environmental Impact Assessment",
-      description: "Comprehensive environmental impact assessment services for development projects, including AMDAL studies, feasibility analysis, and environmental monitoring programs.",
-      shortDescription: "Evaluasi menyeluruh dampak lingkungan untuk proyek pembangunan dan industri",
-      slug: "environmental-impact-assessment",
-      icon: "Leaf",
-      features: ["Analisis AMDAL", "Studi Kelayakan", "Monitoring & Evaluasi"],
-      imageUrl: "https://images.unsplash.com/photo-1497486751825-1233686d5d80?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=600",
-    }).returning();
+    const [eiaService] = await db
+      .insert(services)
+      .values({
+        name: "Environmental Impact Assessment",
+        description:
+          "Comprehensive environmental impact assessment services for development projects, including AMDAL studies, feasibility analysis, and environmental monitoring programs.",
+        shortDescription:
+          "Evaluasi menyeluruh dampak lingkungan untuk proyek pembangunan dan industri",
+        slug: "environmental-impact-assessment",
+        icon: "Leaf",
+        features: [
+          "Analisis AMDAL",
+          "Studi Kelayakan",
+          "Monitoring & Evaluasi",
+        ],
+        imageUrl:
+          "https://images.unsplash.com/photo-1497486751825-1233686d5d80?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=600",
+      })
+      .returning();
 
-    const [waterService] = await db.insert(services).values({
-      name: "Water & Waste Management",
-      description: "Advanced water treatment and waste management solutions, including wastewater treatment systems, solid waste management, and recycling programs.",
-      shortDescription: "Solusi pengelolaan air dan limbah yang efisien dan ramah lingkungan",
-      slug: "water-waste-management",
-      icon: "Droplets",
-      features: ["Sistem Pengolahan Air", "Manajemen Limbah", "Daur Ulang"],
-      imageUrl: "https://images.unsplash.com/photo-1581090700227-1e37b190418e?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=600",
-    }).returning();
+    const [waterService] = await db
+      .insert(services)
+      .values({
+        name: "Water & Waste Management",
+        description:
+          "Advanced water treatment and waste management solutions, including wastewater treatment systems, solid waste management, and recycling programs.",
+        shortDescription:
+          "Solusi pengelolaan air dan limbah yang efisien dan ramah lingkungan",
+        slug: "water-waste-management",
+        icon: "Droplets",
+        features: ["Sistem Pengolahan Air", "Manajemen Limbah", "Daur Ulang"],
+        imageUrl:
+          "https://images.unsplash.com/photo-1581090700227-1e37b190418e?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=600",
+      })
+      .returning();
 
-    const [airService] = await db.insert(services).values({
-      name: "Air Quality Management",
-      description: "Air quality monitoring and management services, including emission control systems, air pollution assessment, and indoor air quality solutions.",
-      shortDescription: "Pemantauan dan pengendalian kualitas udara untuk lingkungan yang sehat",
-      slug: "air-quality-management",
-      icon: "Wind",
-      features: ["Monitoring Emisi", "Sistem Kontrol", "Audit Kualitas Udara"],
-      imageUrl: "https://images.unsplash.com/photo-1472214103451-9374bd1c798e?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=600",
-    }).returning();
+    const [airService] = await db
+      .insert(services)
+      .values({
+        name: "Air Quality Management",
+        description:
+          "Air quality monitoring and management services, including emission control systems, air pollution assessment, and indoor air quality solutions.",
+        shortDescription:
+          "Pemantauan dan pengendalian kualitas udara untuk lingkungan yang sehat",
+        slug: "air-quality-management",
+        icon: "Wind",
+        features: [
+          "Monitoring Emisi",
+          "Sistem Kontrol",
+          "Audit Kualitas Udara",
+        ],
+        imageUrl:
+          "https://images.unsplash.com/photo-1472214103451-9374bd1c798e?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=600",
+      })
+      .returning();
 
-    const [sustainabilityService] = await db.insert(services).values({
-      name: "Sustainability Consulting",
-      description: "Strategic sustainability consulting services, including ESG strategy development, carbon footprint assessment, and sustainable business transformation.",
-      shortDescription: "Konsultasi strategis untuk implementasi praktik bisnis berkelanjutan",
-      slug: "sustainability-consulting",
-      icon: "Recycle",
-      features: ["Green Building", "Carbon Footprint", "ESG Strategy"],
-      imageUrl: "https://images.unsplash.com/photo-1518709268805-4e9042af2176?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=600",
-    }).returning();
+    const [sustainabilityService] = await db
+      .insert(services)
+      .values({
+        name: "Sustainability Consulting",
+        description:
+          "Strategic sustainability consulting services, including ESG strategy development, carbon footprint assessment, and sustainable business transformation.",
+        shortDescription:
+          "Konsultasi strategis untuk implementasi praktik bisnis berkelanjutan",
+        slug: "sustainability-consulting",
+        icon: "Recycle",
+        features: ["Green Building", "Carbon Footprint", "ESG Strategy"],
+        imageUrl:
+          "https://images.unsplash.com/photo-1518709268805-4e9042af2176?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=600",
+      })
+      .returning();
 
     // Create client logos
     await db.insert(clientLogos).values([
       {
         name: "PT Pertamina",
-        logoUrl: "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&h=100",
+        logoUrl:
+          "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&h=100",
         websiteUrl: "https://pertamina.com",
         sortOrder: 1,
       },
       {
         name: "PT Unilever Indonesia",
-        logoUrl: "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&h=100",
+        logoUrl:
+          "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&h=100",
         websiteUrl: "https://unilever.co.id",
         sortOrder: 2,
       },
       {
         name: "PT Semen Indonesia",
-        logoUrl: "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&h=100",
+        logoUrl:
+          "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&h=100",
         websiteUrl: "https://semenindonesia.com",
         sortOrder: 3,
       },
       {
         name: "PT Astra International",
-        logoUrl: "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&h=100",
+        logoUrl:
+          "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&h=100",
         websiteUrl: "https://astra.co.id",
         sortOrder: 4,
       },
       {
         name: "PT Bank Mandiri",
-        logoUrl: "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&h=100",
+        logoUrl:
+          "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&h=100",
         websiteUrl: "https://bankmandiri.co.id",
         sortOrder: 5,
       },
       {
         name: "PT Telkom Indonesia",
-        logoUrl: "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&h=100",
+        logoUrl:
+          "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&h=100",
         websiteUrl: "https://telkom.co.id",
         sortOrder: 6,
       },
@@ -159,52 +225,74 @@ async function seedDatabase() {
     await db.insert(projects).values([
       {
         title: "Green Building Certification for Jakarta Office Tower",
-        description: "Comprehensive green building assessment and certification project for a 40-story office building in Jakarta Central Business District.",
-        shortDescription: "Green building certification project for modern office tower",
+        description:
+          "Comprehensive green building assessment and certification project for a 40-story office building in Jakarta Central Business District.",
+        shortDescription:
+          "Green building certification project for modern office tower",
         client: "PT Ciputra Development",
         serviceId: eiaService.id,
-        imageUrl: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=600",
+        imageUrl:
+          "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=600",
         completedAt: new Date("2023-10-15"),
         duration: "8 months",
         teamSize: 12,
-        technologies: ["LEED Certification", "Energy Modeling", "Indoor Air Quality Assessment"],
-        challenges: "Adapting international green building standards to Indonesian climate and regulations",
-        results: "Achieved LEED Gold certification, 30% reduction in energy consumption",
+        technologies: [
+          "LEED Certification",
+          "Energy Modeling",
+          "Indoor Air Quality Assessment",
+        ],
+        challenges:
+          "Adapting international green building standards to Indonesian climate and regulations",
+        results:
+          "Achieved LEED Gold certification, 30% reduction in energy consumption",
       },
       {
         title: "Wastewater Treatment Plant for Manufacturing Facility",
-        description: "Design and implementation of advanced wastewater treatment system for automotive manufacturing plant in Bekasi.",
+        description:
+          "Design and implementation of advanced wastewater treatment system for automotive manufacturing plant in Bekasi.",
         shortDescription: "Advanced wastewater treatment system implementation",
         client: "PT Astra Honda Motor",
         serviceId: waterService.id,
-        imageUrl: "https://images.unsplash.com/photo-1581090700227-1e37b190418e?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=600",
+        imageUrl:
+          "https://images.unsplash.com/photo-1581090700227-1e37b190418e?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=600",
         completedAt: new Date("2023-09-20"),
         duration: "6 months",
         teamSize: 8,
-        technologies: ["Membrane Bioreactor", "Advanced Oxidation", "Sludge Treatment"],
-        challenges: "Meeting strict discharge standards while maintaining production efficiency",
-        results: "99.5% pollution reduction, full compliance with environmental regulations",
+        technologies: [
+          "Membrane Bioreactor",
+          "Advanced Oxidation",
+          "Sludge Treatment",
+        ],
+        challenges:
+          "Meeting strict discharge standards while maintaining production efficiency",
+        results:
+          "99.5% pollution reduction, full compliance with environmental regulations",
       },
       {
         title: "Air Quality Monitoring System for Industrial Complex",
-        description: "Installation and management of comprehensive air quality monitoring network for Cikarang Industrial Estate.",
+        description:
+          "Installation and management of comprehensive air quality monitoring network for Cikarang Industrial Estate.",
         shortDescription: "Real-time air quality monitoring system",
         client: "Cikarang Industrial Estate",
         serviceId: airService.id,
-        imageUrl: "https://images.unsplash.com/photo-1472214103451-9374bd1c798e?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=600",
+        imageUrl:
+          "https://images.unsplash.com/photo-1472214103451-9374bd1c798e?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=600",
         completedAt: new Date("2023-11-30"),
         duration: "4 months",
         teamSize: 6,
         technologies: ["IoT Sensors", "Real-time Monitoring", "Data Analytics"],
-        challenges: "Integrating diverse monitoring equipment into unified system",
-        results: "24/7 monitoring capability, early warning system for air quality incidents",
+        challenges:
+          "Integrating diverse monitoring equipment into unified system",
+        results:
+          "24/7 monitoring capability, early warning system for air quality incidents",
       },
     ]);
 
     // Create blog posts
     await db.insert(blogPosts).values([
       {
-        title: "Implementasi Green Building di Indonesia: Peluang dan Tantangan",
+        title:
+          "Implementasi Green Building di Indonesia: Peluang dan Tantangan",
         content: `<p>Green building atau bangunan hijau merupakan konsep pembangunan berkelanjutan yang semakin penting di Indonesia. Dengan iklim tropis dan kepadatan penduduk yang tinggi, implementasi green building menjadi solusi untuk mengurangi dampak lingkungan dari sektor konstruksi.</p>
 
 <h2>Peluang Green Building di Indonesia</h2>
@@ -236,10 +324,12 @@ async function seedDatabase() {
 </blockquote>
 
 <p>PT Greenfield Environment Solution telah membantu lebih dari 100 proyek green building di Indonesia, dengan tingkat kepuasan klien mencapai 98%. Kami menyediakan layanan konsultasi komprehensif mulai dari perencanaan hingga sertifikasi.</p>`,
-        excerpt: "Explore bagaimana konsep green building dapat diterapkan di Indonesia dengan mempertimbangkan iklim tropis dan regulasi lokal",
+        excerpt:
+          "Explore bagaimana konsep green building dapat diterapkan di Indonesia dengan mempertimbangkan iklim tropis dan regulasi lokal",
         authorId: editorUser.id,
         categoryId: greenBuildingCategory.id,
-        imageUrl: "https://images.unsplash.com/photo-1509391366360-2e959784a276?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=600",
+        imageUrl:
+          "https://images.unsplash.com/photo-1509391366360-2e959784a276?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=600",
         published: true,
         createdAt: new Date("2023-12-15"),
       },
@@ -314,10 +404,12 @@ async function seedDatabase() {
 </ul>
 
 <p>Implementasi strategi pengelolaan limbah B3 yang tepat tidak hanya memastikan kepatuhan regulasi, tetapi juga dapat memberikan manfaat ekonomi melalui recovery material dan efisiensi proses.</p>`,
-        excerpt: "Panduan komprehensif untuk mengelola limbah berbahaya dan beracun (B3) sesuai dengan regulasi yang berlaku di Indonesia",
+        excerpt:
+          "Panduan komprehensif untuk mengelola limbah berbahaya dan beracun (B3) sesuai dengan regulasi yang berlaku di Indonesia",
         authorId: writerUser.id,
         categoryId: wasteManagementCategory.id,
-        imageUrl: "https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=600",
+        imageUrl:
+          "https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=600",
         published: true,
         createdAt: new Date("2023-12-12"),
       },
@@ -391,10 +483,12 @@ async function seedDatabase() {
 </ul>
 
 <p>Investasi dalam teknologi IoT untuk monitoring lingkungan merupakan langkah strategis yang tidak hanya meningkatkan efisiensi operasional tetapi juga mendukung komitmen perusahaan terhadap sustainability dan environmental stewardship.</p>`,
-        excerpt: "Bagaimana teknologi Internet of Things (IoT) dapat meningkatkan efektivitas monitoring lingkungan dalam berbagai industri",
+        excerpt:
+          "Bagaimana teknologi Internet of Things (IoT) dapat meningkatkan efektivitas monitoring lingkungan dalam berbagai industri",
         authorId: editorUser.id,
         categoryId: monitoringCategory.id,
-        imageUrl: "https://images.unsplash.com/photo-1518709268805-4e9042af2176?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=600",
+        imageUrl:
+          "https://images.unsplash.com/photo-1518709268805-4e9042af2176?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=600",
         published: true,
         createdAt: new Date("2023-12-10"),
       },
@@ -409,13 +503,15 @@ async function seedDatabase() {
 
 // Run seeding if this file is executed directly
 if (import.meta.url === `file://${process.argv[1]}`) {
-  seedDatabase().then(() => {
-    console.log("Seeding completed");
-    process.exit(0);
-  }).catch((error) => {
-    console.error("Seeding failed:", error);
-    process.exit(1);
-  });
+  seedDatabase()
+    .then(() => {
+      console.log("Seeding completed");
+      process.exit(0);
+    })
+    .catch((error) => {
+      console.error("Seeding failed:", error);
+      process.exit(1);
+    });
 }
 
 export { seedDatabase };
