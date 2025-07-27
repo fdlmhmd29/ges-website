@@ -1,16 +1,16 @@
-import { 
-  users, 
-  blogPosts, 
+import {
+  users,
+  blogPosts,
   categories,
   services,
   projects,
   clientLogos,
   contactSubmissions,
-  type User, 
-  type InsertUser, 
+  type User,
+  type InsertUser,
   type InviteUser,
-  type BlogPost, 
-  type InsertBlogPost, 
+  type BlogPost,
+  type InsertBlogPost,
   type UpdateBlogPost,
   type Category,
   type InsertCategory,
@@ -21,7 +21,7 @@ import {
   type ClientLogo,
   type InsertClientLogo,
   type ContactSubmission,
-  type InsertContactSubmission
+  type InsertContactSubmission,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, asc, and, sql } from "drizzle-orm";
@@ -35,52 +35,75 @@ export interface IStorage {
   updateUser(id: number, user: Partial<InsertUser>): Promise<User | undefined>;
   deleteUser(id: number): Promise<boolean>;
   getUsersByRole(role: string): Promise<User[]>;
-  
+
   // Category operations
   getCategories(): Promise<Category[]>;
   getCategory(id: number): Promise<Category | undefined>;
   getCategoryBySlug(slug: string): Promise<Category | undefined>;
   createCategory(category: InsertCategory): Promise<Category>;
-  updateCategory(id: number, category: Partial<InsertCategory>): Promise<Category | undefined>;
+  updateCategory(
+    id: number,
+    category: Partial<InsertCategory>
+  ): Promise<Category | undefined>;
   deleteCategory(id: number): Promise<boolean>;
-  
+
   // Blog post operations
-  getBlogPosts(sortBy?: string, sortOrder?: 'asc' | 'desc'): Promise<BlogPost[]>;
-  getPublishedBlogPosts(sortBy?: string, sortOrder?: 'asc' | 'desc'): Promise<BlogPost[]>;
+  getBlogPosts(
+    sortBy?: string,
+    sortOrder?: "asc" | "desc"
+  ): Promise<BlogPost[]>;
+  getPublishedBlogPosts(
+    sortBy?: string,
+    sortOrder?: "asc" | "desc"
+  ): Promise<BlogPost[]>;
   getBlogPost(id: number): Promise<BlogPost | undefined>;
   createBlogPost(post: InsertBlogPost): Promise<BlogPost>;
-  updateBlogPost(id: number, post: Partial<UpdateBlogPost>): Promise<BlogPost | undefined>;
+  updateBlogPost(
+    id: number,
+    post: Partial<UpdateBlogPost>
+  ): Promise<BlogPost | undefined>;
   deleteBlogPost(id: number): Promise<boolean>;
   getBlogPostsByCategory(categoryId: number): Promise<BlogPost[]>;
   getBlogPostsByAuthor(authorId: number): Promise<BlogPost[]>;
-  
+
   // Service operations
   getServices(): Promise<Service[]>;
   getService(id: number): Promise<Service | undefined>;
   getServiceBySlug(slug: string): Promise<Service | undefined>;
   createService(service: InsertService): Promise<Service>;
-  updateService(id: number, service: Partial<InsertService>): Promise<Service | undefined>;
+  updateService(
+    id: number,
+    service: Partial<InsertService>
+  ): Promise<Service | undefined>;
   deleteService(id: number): Promise<boolean>;
-  
-  // Project operations  
-  getProjects(sortBy?: string, sortOrder?: 'asc' | 'desc'): Promise<Project[]>;
+
+  // Project operations
+  getProjects(sortBy?: string, sortOrder?: "asc" | "desc"): Promise<Project[]>;
   getProject(id: number): Promise<Project | undefined>;
   createProject(project: InsertProject): Promise<Project>;
-  updateProject(id: number, project: Partial<InsertProject>): Promise<Project | undefined>;
+  updateProject(
+    id: number,
+    project: Partial<InsertProject>
+  ): Promise<Project | undefined>;
   deleteProject(id: number): Promise<boolean>;
   getProjectsByService(serviceId: number): Promise<Project[]>;
-  
+
   // Client logo operations
   getClientLogos(): Promise<ClientLogo[]>;
   getClientLogo(id: number): Promise<ClientLogo | undefined>;
   createClientLogo(logo: InsertClientLogo): Promise<ClientLogo>;
-  updateClientLogo(id: number, logo: Partial<InsertClientLogo>): Promise<ClientLogo | undefined>;
+  updateClientLogo(
+    id: number,
+    logo: Partial<InsertClientLogo>
+  ): Promise<ClientLogo | undefined>;
   deleteClientLogo(id: number): Promise<boolean>;
-  
+
   // Contact submission operations
   getContactSubmissions(): Promise<ContactSubmission[]>;
   getContactSubmission(id: number): Promise<ContactSubmission | undefined>;
-  createContactSubmission(submission: InsertContactSubmission): Promise<ContactSubmission>;
+  createContactSubmission(
+    submission: InsertContactSubmission
+  ): Promise<ContactSubmission>;
   markContactSubmissionAsRead(id: number): Promise<boolean>;
 }
 
@@ -92,7 +115,10 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.username, username));
+    const [user] = await db
+      .select()
+      .from(users)
+      .where(eq(users.username, username));
     return user;
   }
 
@@ -102,11 +128,15 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createUser(user: InsertUser): Promise<User> {
-    const [newUser] = await db.insert(users).values(user).returning();
+    const result = await db.insert(users).values(user).returning();
+    const newUser = Array.isArray(result) ? result[0] : undefined;
     return newUser;
   }
 
-  async updateUser(id: number, user: Partial<InsertUser>): Promise<User | undefined> {
+  async updateUser(
+    id: number,
+    user: Partial<InsertUser>
+  ): Promise<User | undefined> {
     const [updatedUser] = await db
       .update(users)
       .set({ ...user, updatedAt: new Date() })
@@ -130,21 +160,33 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getCategory(id: number): Promise<Category | undefined> {
-    const [category] = await db.select().from(categories).where(eq(categories.id, id));
+    const [category] = await db
+      .select()
+      .from(categories)
+      .where(eq(categories.id, id));
     return category;
   }
 
   async getCategoryBySlug(slug: string): Promise<Category | undefined> {
-    const [category] = await db.select().from(categories).where(eq(categories.slug, slug));
+    const [category] = await db
+      .select()
+      .from(categories)
+      .where(eq(categories.slug, slug));
     return category;
   }
 
   async createCategory(category: InsertCategory): Promise<Category> {
-    const [newCategory] = await db.insert(categories).values(category).returning();
+    const [newCategory] = await db
+      .insert(categories)
+      .values(category)
+      .returning();
     return newCategory;
   }
 
-  async updateCategory(id: number, category: Partial<InsertCategory>): Promise<Category | undefined> {
+  async updateCategory(
+    id: number,
+    category: Partial<InsertCategory>
+  ): Promise<Category | undefined> {
     const [updatedCategory] = await db
       .update(categories)
       .set({ ...category, updatedAt: new Date() })
@@ -159,13 +201,25 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Blog post operations
-  async getBlogPosts(sortBy: string = 'createdAt', sortOrder: 'asc' | 'desc' = 'desc'): Promise<BlogPost[]> {
-    const orderByClause = sortOrder === 'asc' ? asc(blogPosts[sortBy as keyof typeof blogPosts]) : desc(blogPosts[sortBy as keyof typeof blogPosts]);
+  async getBlogPosts(
+    sortBy: string = "createdAt",
+    sortOrder: "asc" | "desc" = "desc"
+  ): Promise<BlogPost[]> {
+    const orderByClause =
+      sortOrder === "asc"
+        ? asc(blogPosts[sortBy as keyof typeof blogPosts])
+        : desc(blogPosts[sortBy as keyof typeof blogPosts]);
     return await db.select().from(blogPosts).orderBy(orderByClause);
   }
 
-  async getPublishedBlogPosts(sortBy: string = 'createdAt', sortOrder: 'asc' | 'desc' = 'desc'): Promise<BlogPost[]> {
-    const orderByClause = sortOrder === 'asc' ? asc(blogPosts[sortBy as keyof typeof blogPosts]) : desc(blogPosts[sortBy as keyof typeof blogPosts]);
+  async getPublishedBlogPosts(
+    sortBy: string = "createdAt",
+    sortOrder: "asc" | "desc" = "desc"
+  ): Promise<BlogPost[]> {
+    const orderByClause =
+      sortOrder === "asc"
+        ? asc(blogPosts[sortBy as keyof typeof blogPosts])
+        : desc(blogPosts[sortBy as keyof typeof blogPosts]);
     return await db
       .select()
       .from(blogPosts)
@@ -174,7 +228,10 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getBlogPost(id: number): Promise<BlogPost | undefined> {
-    const [post] = await db.select().from(blogPosts).where(eq(blogPosts.id, id));
+    const [post] = await db
+      .select()
+      .from(blogPosts)
+      .where(eq(blogPosts.id, id));
     return post;
   }
 
@@ -183,7 +240,10 @@ export class DatabaseStorage implements IStorage {
     return newPost;
   }
 
-  async updateBlogPost(id: number, post: Partial<UpdateBlogPost>): Promise<BlogPost | undefined> {
+  async updateBlogPost(
+    id: number,
+    post: Partial<UpdateBlogPost>
+  ): Promise<BlogPost | undefined> {
     const [updatedPost] = await db
       .update(blogPosts)
       .set({ ...post, updatedAt: new Date() })
@@ -215,16 +275,26 @@ export class DatabaseStorage implements IStorage {
 
   // Service operations
   async getServices(): Promise<Service[]> {
-    return await db.select().from(services).where(eq(services.isActive, true)).orderBy(asc(services.name));
+    return await db
+      .select()
+      .from(services)
+      .where(eq(services.isActive, true))
+      .orderBy(asc(services.name));
   }
 
   async getService(id: number): Promise<Service | undefined> {
-    const [service] = await db.select().from(services).where(eq(services.id, id));
+    const [service] = await db
+      .select()
+      .from(services)
+      .where(eq(services.id, id));
     return service;
   }
 
   async getServiceBySlug(slug: string): Promise<Service | undefined> {
-    const [service] = await db.select().from(services).where(eq(services.slug, slug));
+    const [service] = await db
+      .select()
+      .from(services)
+      .where(eq(services.slug, slug));
     return service;
   }
 
@@ -233,7 +303,10 @@ export class DatabaseStorage implements IStorage {
     return newService;
   }
 
-  async updateService(id: number, service: Partial<InsertService>): Promise<Service | undefined> {
+  async updateService(
+    id: number,
+    service: Partial<InsertService>
+  ): Promise<Service | undefined> {
     const [updatedService] = await db
       .update(services)
       .set({ ...service, updatedAt: new Date() })
@@ -248,8 +321,14 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Project operations
-  async getProjects(sortBy: string = 'completedAt', sortOrder: 'asc' | 'desc' = 'desc'): Promise<Project[]> {
-    const orderByClause = sortOrder === 'asc' ? asc(projects[sortBy as keyof typeof projects]) : desc(projects[sortBy as keyof typeof projects]);
+  async getProjects(
+    sortBy: string = "completedAt",
+    sortOrder: "asc" | "desc" = "desc"
+  ): Promise<Project[]> {
+    const orderByClause =
+      sortOrder === "asc"
+        ? asc(projects[sortBy as keyof typeof projects])
+        : desc(projects[sortBy as keyof typeof projects]);
     return await db
       .select()
       .from(projects)
@@ -258,7 +337,10 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getProject(id: number): Promise<Project | undefined> {
-    const [project] = await db.select().from(projects).where(eq(projects.id, id));
+    const [project] = await db
+      .select()
+      .from(projects)
+      .where(eq(projects.id, id));
     return project;
   }
 
@@ -267,7 +349,10 @@ export class DatabaseStorage implements IStorage {
     return newProject;
   }
 
-  async updateProject(id: number, project: Partial<InsertProject>): Promise<Project | undefined> {
+  async updateProject(
+    id: number,
+    project: Partial<InsertProject>
+  ): Promise<Project | undefined> {
     const [updatedProject] = await db
       .update(projects)
       .set({ ...project, updatedAt: new Date() })
@@ -285,7 +370,9 @@ export class DatabaseStorage implements IStorage {
     return await db
       .select()
       .from(projects)
-      .where(and(eq(projects.serviceId, serviceId), eq(projects.isActive, true)))
+      .where(
+        and(eq(projects.serviceId, serviceId), eq(projects.isActive, true))
+      )
       .orderBy(desc(projects.completedAt));
   }
 
@@ -299,7 +386,10 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getClientLogo(id: number): Promise<ClientLogo | undefined> {
-    const [logo] = await db.select().from(clientLogos).where(eq(clientLogos.id, id));
+    const [logo] = await db
+      .select()
+      .from(clientLogos)
+      .where(eq(clientLogos.id, id));
     return logo;
   }
 
@@ -308,7 +398,10 @@ export class DatabaseStorage implements IStorage {
     return newLogo;
   }
 
-  async updateClientLogo(id: number, logo: Partial<InsertClientLogo>): Promise<ClientLogo | undefined> {
+  async updateClientLogo(
+    id: number,
+    logo: Partial<InsertClientLogo>
+  ): Promise<ClientLogo | undefined> {
     const [updatedLogo] = await db
       .update(clientLogos)
       .set({ ...logo, updatedAt: new Date() })
@@ -324,16 +417,29 @@ export class DatabaseStorage implements IStorage {
 
   // Contact submission operations
   async getContactSubmissions(): Promise<ContactSubmission[]> {
-    return await db.select().from(contactSubmissions).orderBy(desc(contactSubmissions.createdAt));
+    return await db
+      .select()
+      .from(contactSubmissions)
+      .orderBy(desc(contactSubmissions.createdAt));
   }
 
-  async getContactSubmission(id: number): Promise<ContactSubmission | undefined> {
-    const [submission] = await db.select().from(contactSubmissions).where(eq(contactSubmissions.id, id));
+  async getContactSubmission(
+    id: number
+  ): Promise<ContactSubmission | undefined> {
+    const [submission] = await db
+      .select()
+      .from(contactSubmissions)
+      .where(eq(contactSubmissions.id, id));
     return submission;
   }
 
-  async createContactSubmission(submission: InsertContactSubmission): Promise<ContactSubmission> {
-    const [newSubmission] = await db.insert(contactSubmissions).values(submission).returning();
+  async createContactSubmission(
+    submission: InsertContactSubmission
+  ): Promise<ContactSubmission> {
+    const [newSubmission] = await db
+      .insert(contactSubmissions)
+      .values(submission)
+      .returning();
     return newSubmission;
   }
 

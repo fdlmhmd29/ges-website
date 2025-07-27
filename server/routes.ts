@@ -1,15 +1,15 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { 
-  insertBlogPostSchema, 
+import {
+  insertBlogPostSchema,
   updateBlogPostSchema,
   insertCategorySchema,
   insertServiceSchema,
   insertProjectSchema,
   insertClientLogoSchema,
   insertContactSubmissionSchema,
-  inviteUserSchema
+  inviteUserSchema,
 } from "@shared/schema";
 import { z } from "zod";
 import bcrypt from "bcryptjs";
@@ -23,8 +23,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Blog routes
   app.get("/api/blog/posts", async (req, res) => {
     try {
-      const { sortBy = 'createdAt', sortOrder = 'desc' } = req.query;
-      const posts = await storage.getPublishedBlogPosts(sortBy as string, sortOrder as string);
+      const { sortBy = "createdAt", sortOrder = "desc" } = req.query;
+      const posts = await storage.getPublishedBlogPosts(
+        sortBy as string,
+        sortOrder as string
+      );
       res.json(posts);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch blog posts" });
@@ -49,21 +52,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { username, password } = loginSchema.parse(req.body);
       const user = await storage.getUserByUsername(username);
-      
+
       if (!user || !(await bcrypt.compare(password, user.password))) {
         return res.status(401).json({ message: "Invalid credentials" });
       }
-      
-      res.json({ 
-        message: "Login successful", 
-        user: { 
-          id: user.id, 
+
+      res.json({
+        message: "Login successful",
+        user: {
+          id: user.id,
           username: user.username,
           email: user.email,
           firstName: user.firstName,
           lastName: user.lastName,
-          role: user.role 
-        } 
+          role: user.role,
+        },
       });
     } catch (error) {
       res.status(400).json({ message: "Invalid request data" });
@@ -72,8 +75,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/admin/blog/posts", async (req, res) => {
     try {
-      const { sortBy = 'createdAt', sortOrder = 'desc' } = req.query;
-      const posts = await storage.getBlogPosts(sortBy as string, sortOrder as string);
+      const { sortBy = "createdAt", sortOrder = "desc" } = req.query;
+      const posts = await storage.getBlogPosts(
+        sortBy as string,
+        sortOrder as string
+      );
       res.json(posts);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch blog posts" });
@@ -95,11 +101,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const id = parseInt(req.params.id);
       const postData = updateBlogPostSchema.parse(req.body);
       const post = await storage.updateBlogPost(id, postData);
-      
+
       if (!post) {
         return res.status(404).json({ message: "Blog post not found" });
       }
-      
+
       res.json(post);
     } catch (error) {
       res.status(400).json({ message: "Invalid blog post data" });
@@ -110,14 +116,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const id = parseInt(req.params.id);
       const success = await storage.deleteBlogPost(id);
-      
+
       if (!success) {
-        return res.status(404).json({ message: "Blog post not found" });
+        return res
+          .status(404)
+          .json({ success: false, message: "Blog post not found" });
       }
-      
-      res.json({ message: "Blog post deleted successfully" });
+
+      res
+        .status(200)
+        .json({ success: true, message: "Blog post deleted successfully" });
     } catch (error) {
-      res.status(500).json({ message: "Failed to delete blog post" });
+      console.error("Error deleting blog post:", error);
+      res
+        .status(500)
+        .json({ success: false, message: "Failed to delete blog post" });
     }
   });
 
@@ -146,11 +159,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const id = parseInt(req.params.id);
       const categoryData = insertCategorySchema.parse(req.body);
       const category = await storage.updateCategory(id, categoryData);
-      
+
       if (!category) {
         return res.status(404).json({ message: "Category not found" });
       }
-      
+
       res.json(category);
     } catch (error) {
       res.status(400).json({ message: "Invalid category data" });
@@ -160,12 +173,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete("/api/admin/categories/:id", async (req, res) => {
     try {
       const id = parseInt(req.params.id);
-      const success = await storage.deleteCategory(id);
-      
-      if (!success) {
-        return res.status(404).json({ message: "Category not found" });
+      const posts = await storage.getBlogPostsByCategory(id);
+      if (posts.length > 0) {
+        return res
+          .status(400)
+          .json({ message: "Cannot delete category with related posts" });
       }
-      
+
       res.json({ message: "Category deleted successfully" });
     } catch (error) {
       res.status(500).json({ message: "Failed to delete category" });
@@ -209,11 +223,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const id = parseInt(req.params.id);
       const serviceData = insertServiceSchema.parse(req.body);
       const service = await storage.updateService(id, serviceData);
-      
+
       if (!service) {
         return res.status(404).json({ message: "Service not found" });
       }
-      
+
       res.json(service);
     } catch (error) {
       res.status(400).json({ message: "Invalid service data" });
@@ -224,11 +238,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const id = parseInt(req.params.id);
       const success = await storage.deleteService(id);
-      
+
       if (!success) {
         return res.status(404).json({ message: "Service not found" });
       }
-      
+
       res.json({ message: "Service deleted successfully" });
     } catch (error) {
       res.status(500).json({ message: "Failed to delete service" });
@@ -238,8 +252,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Project routes
   app.get("/api/projects", async (req, res) => {
     try {
-      const { sortBy = 'completedAt', sortOrder = 'desc' } = req.query;
-      const projects = await storage.getProjects(sortBy as string, sortOrder as 'asc' | 'desc');
+      const { sortBy = "completedAt", sortOrder = "desc" } = req.query;
+      const projects = await storage.getProjects(
+        sortBy as string,
+        sortOrder as "asc" | "desc"
+      );
       res.json(projects);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch projects" });
@@ -274,11 +291,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const id = parseInt(req.params.id);
       const projectData = insertProjectSchema.parse(req.body);
       const project = await storage.updateProject(id, projectData);
-      
+
       if (!project) {
         return res.status(404).json({ message: "Project not found" });
       }
-      
+
       res.json(project);
     } catch (error) {
       res.status(400).json({ message: "Invalid project data" });
@@ -289,11 +306,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const id = parseInt(req.params.id);
       const success = await storage.deleteProject(id);
-      
+
       if (!success) {
         return res.status(404).json({ message: "Project not found" });
       }
-      
+
       res.json({ message: "Project deleted successfully" });
     } catch (error) {
       res.status(500).json({ message: "Failed to delete project" });
@@ -325,11 +342,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const id = parseInt(req.params.id);
       const logoData = insertClientLogoSchema.parse(req.body);
       const logo = await storage.updateClientLogo(id, logoData);
-      
+
       if (!logo) {
         return res.status(404).json({ message: "Client logo not found" });
       }
-      
+
       res.json(logo);
     } catch (error) {
       res.status(400).json({ message: "Invalid client logo data" });
@@ -340,11 +357,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const id = parseInt(req.params.id);
       const success = await storage.deleteClientLogo(id);
-      
+
       if (!success) {
         return res.status(404).json({ message: "Client logo not found" });
       }
-      
+
       res.json({ message: "Client logo deleted successfully" });
     } catch (error) {
       res.status(500).json({ message: "Failed to delete client logo" });
@@ -356,7 +373,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const contactData = insertContactSubmissionSchema.parse(req.body);
       const submission = await storage.createContactSubmission(contactData);
-      res.status(201).json({ message: "Pesan berhasil dikirim. Kami akan menghubungi Anda segera." });
+      res.status(201).json({
+        message: "Pesan berhasil dikirim. Kami akan menghubungi Anda segera.",
+      });
     } catch (error) {
       res.status(500).json({ message: "Gagal mengirim pesan" });
     }
@@ -375,14 +394,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const id = parseInt(req.params.id);
       const success = await storage.markContactSubmissionAsRead(id);
-      
+
       if (!success) {
-        return res.status(404).json({ message: "Contact submission not found" });
+        return res
+          .status(404)
+          .json({ message: "Contact submission not found" });
       }
-      
+
       res.json({ message: "Contact submission marked as read" });
     } catch (error) {
-      res.status(500).json({ message: "Failed to mark contact submission as read" });
+      res
+        .status(500)
+        .json({ message: "Failed to mark contact submission as read" });
     }
   });
 
@@ -392,8 +415,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const users = await storage.getUsersByRole("admin");
       const editors = await storage.getUsersByRole("editor");
       const viewers = await storage.getUsersByRole("viewer");
-      
-      const allUsers = [...users, ...editors, ...viewers].map(user => ({
+
+      const allUsers = [...users, ...editors, ...viewers].map((user) => ({
         id: user.id,
         username: user.username,
         email: user.email,
@@ -401,9 +424,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         lastName: user.lastName,
         role: user.role,
         isActive: user.isActive,
-        createdAt: user.createdAt
+        createdAt: user.createdAt,
       }));
-      
+
       res.json(allUsers);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch users" });
@@ -414,13 +437,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userData = inviteUserSchema.parse(req.body);
       const hashedPassword = await bcrypt.hash("password123", 10);
-      
+
       const user = await storage.createUser({
         ...userData,
         password: hashedPassword,
-        isActive: true
+        isActive: true,
       });
-      
+
       res.status(201).json({
         id: user.id,
         username: user.username,
@@ -428,7 +451,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         firstName: user.firstName,
         lastName: user.lastName,
         role: user.role,
-        isActive: user.isActive
+        isActive: user.isActive,
       });
     } catch (error) {
       res.status(400).json({ message: "Invalid user data" });
@@ -439,17 +462,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const id = parseInt(req.params.id);
       const { password, ...updateData } = req.body;
-      
-      const userData = password ? 
-        { ...updateData, password: await bcrypt.hash(password, 10) } : 
-        updateData;
-      
+
+      const userData = password
+        ? { ...updateData, password: await bcrypt.hash(password, 10) }
+        : updateData;
+
       const user = await storage.updateUser(id, userData);
-      
+
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
-      
+
       res.json({
         id: user.id,
         username: user.username,
@@ -457,7 +480,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         firstName: user.firstName,
         lastName: user.lastName,
         role: user.role,
-        isActive: user.isActive
+        isActive: user.isActive,
       });
     } catch (error) {
       res.status(400).json({ message: "Invalid user data" });
@@ -468,11 +491,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const id = parseInt(req.params.id);
       const success = await storage.deleteUser(id);
-      
+
       if (!success) {
         return res.status(404).json({ message: "User not found" });
       }
-      
+
       res.json({ message: "User deleted successfully" });
     } catch (error) {
       res.status(500).json({ message: "Failed to delete user" });
